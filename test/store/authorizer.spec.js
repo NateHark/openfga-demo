@@ -99,7 +99,7 @@ describe('authorizer tests', () => {
     await expect(authorizer.userHasRole(adminUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
   });
 
-  test('shareObjectToGroup', async () => {
+  test('direct authorization test', async () => {
     const authorizer = await Authorizer.initAuthorizer(customerId);
     await authorizer.updateAuthorizationModel();
 
@@ -148,7 +148,7 @@ describe('authorizer tests', () => {
     await expect(authorizer.userHasRole(adminUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
   });
 
-  test('shareObjectToGroup - hierarchy', async () => {
+  test('indirect authorization tests', async () => {
     const authorizer = await Authorizer.initAuthorizer(customerId);
     await authorizer.updateAuthorizationModel();
 
