@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    networks:
+      - default
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./docker/storage/postgres/migrations/20220617_initialize_schema.up.sql:/docker-entrypoint-initdb.d/db.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  openfga:
+    image: openfga/openfga:latest
+    container_name: openfga
+    command: run
+    networks:
+      - default
+    ports:
+      - "8080:8080"
+      - "3000:3000"

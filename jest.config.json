@@ -1,0 +1,12 @@
+{
+    "moduleFileExtensions": [
+        "js"
+    ],
+    "rootDir": "./",
+    "modulePaths": [
+        "<rootDir>"
+    ],
+    "transform": {},
+    "testRegex": ".spec.js$",
+    "testEnvironment": "node"
+}

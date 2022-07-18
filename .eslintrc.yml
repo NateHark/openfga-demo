@@ -1,0 +1,17 @@
+env:
+  browser: true
+  es2021: true
+extends:
+  - airbnb-base
+parserOptions:
+  ecmaVersion: latest
+  sourceType: module
+rules: {
+  max-len:
+    - 2
+    - code: 160
+}
+overrides:
+  files: ["**/*.spec.js"]
+  env:
+    jest: true
