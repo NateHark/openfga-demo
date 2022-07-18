@@ -63,6 +63,87 @@ const authorizationModel = {
         },
       },
     },
+    {
+      type: ObjectType.Report.name,
+      relations: {
+        parent: {
+          this: {},
+        },
+        viewer: {
+          union: {
+            child: [
+              {
+                this: {},
+              },
+              {
+                computedUserset: {
+                  relation: 'editor',
+                },
+              },
+              {
+                tupleToUserset: {
+                  tupleset: {
+                    object: '',
+                    relation: 'parent',
+                  },
+                  computedUserset: {
+                    object: '',
+                    relation: 'viewer',
+                  },
+                },
+              },
+            ],
+          },
+        },
+        editor: {
+          union: {
+            child: [
+              {
+                this: {},
+              },
+              {
+                computedUserset: {
+                  relation: 'admin',
+                },
+              },
+              {
+                tupleToUserset: {
+                  tupleset: {
+                    object: '',
+                    relation: 'parent',
+                  },
+                  computedUserset: {
+                    object: '',
+                    relation: 'editor',
+                  },
+                },
+              },
+            ],
+          },
+        },
+        admin: {
+          union: {
+            child: [
+              {
+                this: {},
+              },
+              {
+                tupleToUserset: {
+                  tupleset: {
+                    object: '',
+                    relation: 'parent',
+                  },
+                  computedUserset: {
+                    object: '',
+                    relation: 'admin',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
   ],
 };
 
@@ -239,6 +320,51 @@ export default class Authorizer {
     const { allowed } = await this.client.check({
       tuple_key: {
         user: ObjectType.User.getObjectId(userId),
+        relation: role.name,
+        object: objectType.getObjectId(objectId),
+      },
+    });
+
+    return allowed;
+  }
+
+  async shareObjectToGroup(groupId, role, objectType, objectId) {
+    await this.client.write({
+      writes: {
+        tuple_keys: [
+          {
+            user: ObjectType.Group.getObjectId(groupId) /* the group directly */,
+            relation: role.name,
+            object: objectType.getObjectId(objectId),
+          },
+          {
+            user: `${ObjectType.Group.getObjectId(groupId)}#member` /* all group members */,
+            relation: role.name,
+            object: objectType.getObjectId(objectId),
+          },
+        ],
+      },
+    });
+  }
+
+  async setObjectParent(objectType, objectId, parentObjectType, parentObjectId) {
+    await this.client.write({
+      writes: {
+        tuple_keys: [
+          {
+            user: parentObjectType.getObjectId(parentObjectId) /* the parent object */,
+            relation: 'parent',
+            object: objectType.getObjectId(objectId),
+          },
+        ],
+      },
+    });
+  }
+
+  async groupHasRole(groupId, role, objectType, objectId) {
+    const { allowed } = await this.client.check({
+      tuple_key: {
+        user: ObjectType.Group.getObjectId(groupId),
         relation: role.name,
         object: objectType.getObjectId(objectId),
       },

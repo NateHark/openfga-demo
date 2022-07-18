@@ -98,4 +98,104 @@ describe('authorizer tests', () => {
     await expect(authorizer.userHasRole(adminUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
     await expect(authorizer.userHasRole(adminUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
   });
+
+  test('shareObjectToGroup', async () => {
+    const authorizer = await Authorizer.initAuthorizer(customerId);
+    await authorizer.updateAuthorizationModel();
+
+    const folderId = uniqueId('folder');
+
+    const viewerGroupId = uniqueId('group');
+    const viewerUserId = uniqueId('user');
+    await authorizer.addUserToGroup(viewerUserId, viewerGroupId);
+
+    const editorGroupId = uniqueId('group');
+    const editorUserId = uniqueId('user');
+    await authorizer.addUserToGroup(editorUserId, editorGroupId);
+
+    const adminGroupId = uniqueId('group');
+    const adminUserId = uniqueId('user');
+    await authorizer.addUserToGroup(adminUserId, adminGroupId);
+
+    await authorizer.shareObjectToGroup(viewerGroupId, Role.Viewer, ObjectType.Folder, folderId);
+    // Verify group has expected roles
+    await expect(authorizer.groupHasRole(viewerGroupId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(viewerGroupId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(false);
+    await expect(authorizer.groupHasRole(viewerGroupId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+    // Verify user in group has expected roles
+    await expect(authorizer.userHasRole(viewerUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(false);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+
+    await authorizer.shareObjectToGroup(editorGroupId, Role.Editor, ObjectType.Folder, folderId);
+    // Verify group has expected roles
+    await expect(authorizer.groupHasRole(editorGroupId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(editorGroupId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(editorGroupId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+    // Verify user in group has expected roles
+    await expect(authorizer.userHasRole(editorUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(editorUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(editorUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+
+    await authorizer.shareObjectToGroup(adminGroupId, Role.Admin, ObjectType.Folder, folderId);
+    // Verify group has expected roles
+    await expect(authorizer.groupHasRole(adminGroupId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(adminGroupId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(adminGroupId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
+    // Verify user in group has expected roles
+    await expect(authorizer.userHasRole(adminUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(adminUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(adminUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
+  });
+
+  test('shareObjectToGroup - hierarchy', async () => {
+    const authorizer = await Authorizer.initAuthorizer(customerId);
+    await authorizer.updateAuthorizationModel();
+
+    const folderId = uniqueId('folder');
+    const reportId = uniqueId('report');
+
+    const viewerUserId = uniqueId('user');
+
+    const folderAdminGroupId = uniqueId('group');
+    const folderAdminUserId = uniqueId('user');
+    await authorizer.addUserToGroup(folderAdminUserId, folderAdminGroupId);
+
+    // Associate the report with the folder
+    await authorizer.setObjectParent(ObjectType.Report, reportId, ObjectType.Folder, folderId);
+
+    // Share the folder to the group
+    await authorizer.shareObjectToGroup(folderAdminGroupId, Role.Admin, ObjectType.Folder, folderId);
+
+    // Verify group has expected roles on the folder
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
+    // Verify user in group has expected roles on the folder
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(true);
+
+    // Verify group has expected roles on the report
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Viewer, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Editor, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.groupHasRole(folderAdminGroupId, Role.Admin, ObjectType.Report, reportId)).resolves.toBe(true);
+    // Verify user in group has expected roles on the report
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Viewer, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Editor, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(folderAdminUserId, Role.Admin, ObjectType.Report, reportId)).resolves.toBe(true);
+
+    // Share the report directly to a user
+    await authorizer.shareObjectToUser(viewerUserId, Role.Viewer, ObjectType.Report, reportId);
+
+    // Verify the user has expected roles on the report
+    await expect(authorizer.userHasRole(viewerUserId, Role.Viewer, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Editor, ObjectType.Report, reportId)).resolves.toBe(false);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Admin, ObjectType.Report, reportId)).resolves.toBe(false);
+
+    // Verify the user doesn't have access to the folder
+    await expect(authorizer.userHasRole(viewerUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(false);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(false);
+    await expect(authorizer.userHasRole(viewerUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+  });
 });

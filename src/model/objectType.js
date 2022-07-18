@@ -3,6 +3,7 @@ export default class ObjectType {
   static Group = new ObjectType('group');
   static User = new ObjectType('user');
   static Folder = new ObjectType('folder');
+  static Report = new ObjectType('report');
 
   constructor(name) {
     this.name = name;
