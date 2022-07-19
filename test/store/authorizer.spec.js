@@ -1,5 +1,6 @@
 import Authorizer from '../../src/store/authorizer';
 import ObjectType from '../../src/model/objectType';
+import Permission from '../../src/model/permission';
 import Role from '../../src/model/role';
 import uniqueId from '../../src/util/idGenerator';
 
@@ -197,5 +198,26 @@ describe('authorizer tests', () => {
     await expect(authorizer.userHasRole(viewerUserId, Role.Viewer, ObjectType.Folder, folderId)).resolves.toBe(false);
     await expect(authorizer.userHasRole(viewerUserId, Role.Editor, ObjectType.Folder, folderId)).resolves.toBe(false);
     await expect(authorizer.userHasRole(viewerUserId, Role.Admin, ObjectType.Folder, folderId)).resolves.toBe(false);
+  });
+
+  test('granular permissions tests', async () => {
+    const authorizer = await Authorizer.initAuthorizer(customerId);
+    await authorizer.updateAuthorizationModel();
+
+    const reportId = uniqueId('report');
+
+    const viewerUserId = uniqueId('user');
+    const editorUserId = uniqueId('user');
+    const adminUserId = uniqueId('user');
+
+    // Share the users to the report
+    await authorizer.shareObjectToUser(viewerUserId, Role.Viewer, ObjectType.Report, reportId);
+    await authorizer.shareObjectToUser(editorUserId, Role.Editor, ObjectType.Report, reportId);
+    await authorizer.shareObjectToUser(adminUserId, Role.Admin, ObjectType.Report, reportId);
+
+    // Verify editor and admin user has drilldown permission while viewer does not
+    await expect(authorizer.userHasPermission(viewerUserId, Permission.ReportDrilldown, ObjectType.Report, reportId)).resolves.toBe(false);
+    await expect(authorizer.userHasPermission(editorUserId, Permission.ReportDrilldown, ObjectType.Report, reportId)).resolves.toBe(true);
+    await expect(authorizer.userHasPermission(adminUserId, Permission.ReportDrilldown, ObjectType.Report, reportId)).resolves.toBe(true);
   });
 });

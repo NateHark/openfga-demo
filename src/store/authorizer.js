@@ -142,6 +142,22 @@ const authorizationModel = {
             ],
           },
         },
+        report_drilldown: {
+          union: {
+            child: [
+              {
+                computedUserset: {
+                  relation: 'editor',
+                },
+              },
+              {
+                computedUserset: {
+                  relation: 'editor',
+                },
+              },
+            ],
+          },
+        },
       },
     },
   ],
@@ -366,6 +382,18 @@ export default class Authorizer {
       tuple_key: {
         user: ObjectType.Group.getObjectId(groupId),
         relation: role.name,
+        object: objectType.getObjectId(objectId),
+      },
+    });
+
+    return allowed;
+  }
+
+  async userHasPermission(userId, permission, objectType, objectId) {
+    const { allowed } = await this.client.check({
+      tuple_key: {
+        user: ObjectType.User.getObjectId(userId),
+        relation: permission.name,
         object: objectType.getObjectId(objectId),
       },
     });
