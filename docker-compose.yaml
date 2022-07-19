@@ -19,7 +19,7 @@ services:
       retries: 5
 
   openfga:
-    image: openfga/openfga:latest
+    build: ./openfga
     container_name: openfga
     command: run
     networks:
