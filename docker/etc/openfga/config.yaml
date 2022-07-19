@@ -1,0 +1,3 @@
+datastore:
+  engine: postgres
+  uri: postgres://postgres:password@postgres:5432/openfga

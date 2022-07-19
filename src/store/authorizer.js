@@ -176,11 +176,35 @@ export default class Authorizer {
       apiHost: `${OPENFGA_API_HOST}:${OPENFGA_API_PORT}`,
     });
 
-    const store = await client.createStore({
-      name: customerId,
+    let storeId = await this.getStoreId(customerId);
+    if (storeId == null) {
+      ({ id: storeId } = await client.createStore({
+        name: customerId,
+      }));
+    }
+
+    return new Authorizer(storeId);
+  }
+
+  static async getStoreId(customerId) {
+    const client = new OpenFgaApi({
+      apiScheme: OPENFGA_API_SCHEME,
+      apiHost: `${OPENFGA_API_HOST}:${OPENFGA_API_PORT}`,
     });
 
-    return new Authorizer(store.id);
+    let storeId = null,
+      stores = null,
+      continuation_token = null;
+    do {
+      ({ stores, continuation_token } = await client.listStores());
+      const filtered = stores.filter((store) => store.name === customerId);
+      if (filtered.length > 0) {
+        storeId = filtered[0].id;
+        break;
+      }
+    } while (continuation_token);
+
+    return storeId;
   }
 
   /**

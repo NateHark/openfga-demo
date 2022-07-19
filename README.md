@@ -6,8 +6,11 @@ The best way to get started is to view the unit tests in `test/store/authorizer.
 
 ### Running Tests
 ```bash
+# Clone this repository
+$ > git clone --recurse-submodules https://github.com/NateHark/openfga-demo.git
+$ > cd openfga-demo
 # Start OpenFGA and dependencies via docker-compose
 $ openfga-demo> docker-compose up -d
-# Run unit tests
+# Run integration tests
 $ openfga-demo> npm run test
 ```
