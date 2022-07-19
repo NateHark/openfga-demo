@@ -1,0 +1,3 @@
+[submodule "openfga"]
+	path = openfga
+	url = git@github.com:openfga/openfga.git
