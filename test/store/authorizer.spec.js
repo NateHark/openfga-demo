@@ -218,16 +218,4 @@ describe('authorizer tests', () => {
     await expect(authorizer.userHasPermission(editorUserId, Permission.ReportDrilldown, ObjectType.Report, reportId)).resolves.toBe(true);
     await expect(authorizer.userHasPermission(adminUserId, Permission.ReportDrilldown, ObjectType.Report, reportId)).resolves.toBe(true);
   });
-
-  // test('performance test', async () => {
-  //   const authorizer = await Authorizer.initAuthorizer(customerId);
-  //   await authorizer.updateAuthorizationModel();
-
-  //   // Create customers
-  //   const customerCount = 100;
-  //   const customerIds = [...new Array(customerCount)].map(() => uniqueId('customer'));
-  //   for (const customerId of customerIds) {
-  //     await authorizer.addUserToCustomer(userId, customerId);
-  //   }
-  // });
 });

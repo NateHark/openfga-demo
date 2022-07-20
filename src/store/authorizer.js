@@ -186,25 +186,33 @@ export default class Authorizer {
     return new Authorizer(storeId);
   }
 
-  static async getStoreId(customerId) {
-    const client = new OpenFgaApi({
-      apiScheme: OPENFGA_API_SCHEME,
-      apiHost: `${OPENFGA_API_HOST}:${OPENFGA_API_PORT}`,
-    });
+  static async getStoreId(customerId, client = null, continuation_token = null) {
+    if (client == null) {
+      client = new OpenFgaApi({
+        apiScheme: OPENFGA_API_SCHEME,
+        apiHost: `${OPENFGA_API_HOST}:${OPENFGA_API_PORT}`,
+      });
+    }
 
-    let storeId = null,
-      stores = null,
-      continuation_token = null;
-    do {
-      ({ stores, continuation_token } = await client.listStores());
-      const filtered = stores.filter((store) => store.name === customerId);
-      if (filtered.length > 0) {
-        storeId = filtered[0].id;
-        break;
-      }
-    } while (continuation_token);
+    let stores = null;
+    let pageSize = 100;
 
-    return storeId;
+    if (continuation_token) {
+      ({ stores, continuation_token } = await client.listStores(pageSize, continuation_token));
+    } else {
+      ({ stores, continuation_token } = await client.listStores(pageSize));
+    }
+
+    const store = stores.find((store) => store.name === customerId);
+    if (store) {
+      return store.id;
+    }
+
+    if (continuation_token) {
+      return await this.getStoreId(customerId, client, continuation_token);
+    }
+
+    return null;
   }
 
   /**

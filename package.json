@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules npx jest",
+    "test:perf": "NODE_OPTIONS=\"--experimental-vm-modules --es-module-specifier-resolution=node\" node test/perf/perf-test.js",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watchAll"
   },
   "author": "",
